@@ -1,10 +1,10 @@
-import StaticServer from 'react-native-static-server';
+import StaticServer from "react-native-static-server";
 
 import RNFetchBlob from "rn-fetch-blob";
 
-import { unzip } from 'react-native-zip-archive'
+import { unzip } from "react-native-zip-archive";
 
-const Dirs = RNFetchBlob.fs.dirs
+const Dirs = RNFetchBlob.fs.dirs;
 
 if (!global.Blob) {
   global.Blob = RNFetchBlob.polyfill.Blob;
@@ -13,13 +13,12 @@ if (!global.Blob) {
 const Uri = require("epubjs/lib/utils/url");
 
 class EpubStreamer {
-
   constructor(opts) {
     opts = opts || {};
     this.port = opts.port || "3" + Math.round(Math.random() * 1000);
     this.root = opts.root || "www";
 
-    this.serverOrigin = 'file://';
+    this.serverOrigin = "file://";
 
     this.urls = [];
     this.locals = [];
@@ -31,16 +30,19 @@ class EpubStreamer {
 
   setup() {
     // Add the directory
-    return RNFetchBlob.fs.exists(`${Dirs.DocumentDir}/${this.root}`)
+    return RNFetchBlob.fs
+      .exists(`${Dirs.DocumentDir}/${this.root}`)
       .then((exists) => {
         if (!exists) {
           return RNFetchBlob.fs.mkdir(`${Dirs.DocumentDir}/${this.root}`);
         }
       })
       .then(() => {
-        return new StaticServer(this.port, this.root, {localOnly: true});
+        return new StaticServer(this.port, this.root, { localOnly: true });
       })
-      .catch((e) => { console.error(e) });
+      .catch((e) => {
+        console.error(e);
+      });
   }
 
   start() {
@@ -70,32 +72,29 @@ class EpubStreamer {
     }
   }
 
-  add(bookUrl) {
+  add(bookUrl, headers) {
     let uri = new Uri(bookUrl);
     const filename = this.filename(bookUrl);
 
-    return RNFetchBlob
-      .config({
-        fileCache : true,
-        path: Dirs.DocumentDir + '/' + filename
-      })
-      .fetch("GET", bookUrl)
+    return RNFetchBlob.config({
+      fileCache: true,
+      path: Dirs.DocumentDir + "/" + filename,
+    })
+      .fetch("GET", bookUrl, headers)
       .then((res) => {
         const sourcePath = res.path();
         const targetPath = `${Dirs.DocumentDir}/${this.root}/${filename}`;
         const url = `${this.serverOrigin}/${filename}/`;
 
-        return unzip(sourcePath, targetPath)
-          .then((path) => {
+        return unzip(sourcePath, targetPath).then((path) => {
+          this.urls.push(bookUrl);
+          this.locals.push(url);
+          this.paths.push(path);
 
-            this.urls.push(bookUrl);
-            this.locals.push(url);
-            this.paths.push(path);
+          // res.flush();
 
-            // res.flush();
-
-            return url;
-          })
+          return url;
+        });
       });
   }
 
@@ -106,39 +105,39 @@ class EpubStreamer {
     return RNFetchBlob.fs.exists(targetPath);
   }
 
-  get(bookUrl) {
-    return this.check(bookUrl)
-      .then((exists) => {
-        if (exists) {
-          const filename = this.filename(bookUrl);
-          const url = `${this.serverOrigin}/${filename}/`;
-          return url;
-        }
+  get(bookUrl, headers = null) {
+    return this.check(bookUrl).then((exists) => {
+      if (exists) {
+        const filename = this.filename(bookUrl);
+        const url = `${this.serverOrigin}/${filename}/`;
+        return url;
+      }
 
-        return this.add(bookUrl);
-      })
+      return this.add(bookUrl, headers);
+    });
   }
 
   filename(bookUrl) {
     let uri = new Uri(bookUrl);
     let finalFileName;
-    if(uri.filename.indexOf("?") > -1) {
-        finalFileName = uri.filename.split("?")[0].replace(".epub", "");
+    if (uri.filename.indexOf("?") > -1) {
+      finalFileName = uri.filename.split("?")[0].replace(".epub", "");
     } else {
-        finalFileName = uri.filename.replace(".epub", "");
+      finalFileName = uri.filename.replace(".epub", "");
     }
-    return  finalFileName;
+    return finalFileName;
   }
 
   remove(path) {
-    return RNFetchBlob.fs.lstat(path)
+    return RNFetchBlob.fs
+      .lstat(path)
       .then((stats) => {
         let index = this.paths.indexOf(path);
         this.paths.splice(index, 1);
         this.urls.splice(index, 1);
         this.locals.splice(index, 1);
       })
-      .catch((err) => {})
+      .catch((err) => {});
   }
 
   clean() {
