@@ -1,7 +1,8 @@
 {
-  "name": "@sbrighiu/epubjs-rn",
-  "version": "0.2.83",
-  "repository": "https://github.com/sbrighiu/epubjs-rn",
+  "name": "@mubeen/epubjs-rn",
+  "version": "1.0.0",
+  "repository": "https://github.com/Mubeen07/epubjs-rn.git",
+  "description": "Epub for react-native, supports headers",
   "main": "./components/index.js",
   "private": false,
   "scripts": {
@@ -12,6 +13,7 @@
     "local": "./node_modules/.bin/gulp watch",
     "prepublishOnly": "npm run build"
   },
+  "author": "Mubeen",
   "license": "BSD-2-Clause",
   "dependencies": {
     "@babel/polyfill": "7.8.7",
