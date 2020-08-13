@@ -1,6 +1,6 @@
 {
   "name": "@mubeen_ahmed/epubjs-rn",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "repository": "https://github.com/Mubeen07/epubjs-rn",
   "description": "Epub for react-native, supports headers",
   "main": "./components/index.js",
